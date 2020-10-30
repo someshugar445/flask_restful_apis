@@ -50,6 +50,22 @@ class Products(Resource):
         else:
             collection.insert_one(product)
         return product, 200
+    
+    def patch(self, product_id):
+        """Updates the product details for given product id ."""
+        request_payload = request.json  # if the key doesnt exist, it will return a None
+        product = request_payload
+        existing_product = list(collection.find({"product_id": product_id}))
+        invalid = False
+        my_query = existing_product[0]
+        new_value = {"$set": product}
+        if invalid:
+            return invalid_input()
+        elif existing_product:
+            collection.update_one(my_query, new_value)
+        else:
+            collection.insert_one(product)
+        return product, 200
 
 def invalid_input(error=None):
     message = {
