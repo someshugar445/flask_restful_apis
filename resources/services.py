@@ -9,14 +9,7 @@ from config import Config
 
 db = Config()
 collection = db.collection
-# username = urllib.parse.quote_plus('somesh')
-# password = urllib.parse.quote_plus('eEwAodimXBOi3liX')
-#
-#
-# uri = "mongodb+srv://%s:%s@cluster0.rxcrr.mongodb.net/my_database?retryWrites=true&w=majority" % (username, password)
-# client = MongoClient(uri)
-# db = client["my_database"]
-# collection = db["my_collection"]
+
 
 class ProductList(Resource):
     def get(self):
