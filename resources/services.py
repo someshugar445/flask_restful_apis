@@ -1,39 +1,31 @@
-from flask import Flask
-from flask import request, jsonify
-import pymongo
-from pymongo import MongoClient
 import json
+from flask_restful import Resource
+from flask import request, jsonify
+from pymongo import MongoClient
 from bson import json_util
 import urllib.parse
-from pymongo.errors import ConnectionFailure
 from pymongo.errors import ServerSelectionTimeoutError
-from flask_restful import Resource, Api
+from config import Config
 
-
-app = Flask(__name__)
-api = Api(app)
-
-
-username = urllib.parse.quote_plus('somesh')
-password = urllib.parse.quote_plus('eEwAodimXBOi3liX')
-
-uri = "mongodb+srv://%s:%s@cluster0.rxcrr.mongodb.net/my_database?retryWrites=true&w=majority" % (username, password )
-client = MongoClient(uri)
-
-db = client["my_database"]
-collection = db["my_collection"]
-try:
-    info = client.server_info() # Forces a call.
-except ServerSelectionTimeoutError:
-    print("server is down.")
-
+db = Config()
+collection = db.collection
+# username = urllib.parse.quote_plus('somesh')
+# password = urllib.parse.quote_plus('eEwAodimXBOi3liX')
+#
+#
+# uri = "mongodb+srv://%s:%s@cluster0.rxcrr.mongodb.net/my_database?retryWrites=true&w=majority" % (username, password)
+# client = MongoClient(uri)
+# db = client["my_database"]
+# collection = db["my_collection"]
 
 class ProductList(Resource):
     def get(self):
+        """Returns list of products."""
         all_products = list(collection.find({}))
         return json.dumps(all_products, default=json_util.default), 200
 
     def post(self):
+        """Creates a new product"""
         invalid = False
         request_payload = request.json  # if the key doesnt exist, it will return a None
         product = request_payload
@@ -46,10 +38,12 @@ class ProductList(Resource):
             return invalid_input()
         else:
             collection.insert_one(product)
-        return product,201
+        return product, 201
+
 
 class Products(Resource):
-    def put(self,product_id):
+    def put(self, product_id):
+        """Updates the product details for given product id ."""
         request_payload = request.json  # if the key doesnt exist, it will return a None
         product = request_payload
         existing_product = list(collection.find({"product_id": product_id}))
@@ -62,11 +56,7 @@ class Products(Resource):
             collection.update_one(my_query, new_value)
         else:
             collection.insert_one(product)
-        return product,200
-
-
-api.add_resource(ProductList, '/api/v1/products')
-api.add_resource(Products, '/api/v1/products/<product_id>')
+        return product, 200
 
 def invalid_input(error=None):
     message = {
@@ -77,6 +67,7 @@ def invalid_input(error=None):
     resp.status_code = 405
     return resp
 
+
 def conflict(error=None):
     message = {
         'status': 409,
@@ -86,6 +77,3 @@ def conflict(error=None):
     resp.status_code = 409
     return resp
 
-
-if __name__ == "__main__":
-    app.run(debug=True, port=5000)
